@@ -1,6 +1,8 @@
 from pathlib import Path
 import csv
 
+from entity import Task
+
 BASE_DIR = Path(__file__).parent
 
 
@@ -27,14 +29,14 @@ class CSVFile:
 
     def write_all(self, rows: list[list]):
 
-        with open(self.file_path, "w") as f:
+        with open(self.file_path, "w", newline="") as f:
 
             writer = csv.writer(f)
             writer.writerows(rows)
 
     def append_row(self, row: list):
 
-        with open(self.file_path, "a") as f:
+        with open(self.file_path, "a", newline="") as f:
 
             writer = csv.writer(f)
             writer.writerow(row)
@@ -58,25 +60,46 @@ class TaskDB:
 
     def __init__(self):
         self.csv_handler = CSVFile("tasks.csv")
-
-
-class StateTransitionDB:
-
-    def __init__(self):
-        self.json_handler = JSONFile("state_transitions.json")
+        self.initialize()
 
     def __initial_data(self):
 
-        data = {0: [1, 3], 1: [0, 2, 3], 2: [0], 3: []}
-        return data
+        header = ["task_id", "title", "created_at", "completed_at", "note", "state"]
+        return header
 
     def initialize(self):
 
-        data = self.__initial_data()
-        self.json_handler
+        try:
+            self.csv_handler.read_all()
+        except:
+            row = self.__initial_data()
+            self.csv_handler.append_row(row)
+
+    def get_all_tasks(self, skip_header=True):
+
+        rows = self.csv_handler.read_all()
+        if skip_header:
+            rows = rows[1:]
+
+        tasks = [Task(r[1], r[2], r[3], r[0], r[4], r[5]) for r in rows]
+        return tasks
+
+    def create_task(self):
+        pass
+
+    def update_task(self):
+        pass
+
+    def delete_task(self):
+        pass
+
+    def fetch_task(self):
+        pass
 
 
 if __name__ == "__main__":
 
-    stdb = StateTransitionDB()
     taskdb = TaskDB()
+    all_task = taskdb.get_all_tasks()
+    for task in all_task:
+        print(task.task_id, task.title)

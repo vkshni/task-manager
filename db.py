@@ -84,22 +84,47 @@ class TaskDB:
         tasks = [Task(r[1], r[2], r[3], r[0], r[4], r[5]) for r in rows]
         return tasks
 
-    def create_task(self):
-        pass
+    def fetch_task(self, filter, value):
+
+        tasks = self.get_all_tasks()
+        filtered = []
+        for task in tasks:
+            if filter == "TITLE" and task.title == value:
+                filtered.append(task)
+            if filter == "CREATED_ON" and str(task.created_at.date()) == value:
+                filtered.append(task)
+            # if filter == "COMPLETED_ON" and str(task.completed_at.date()) == value:
+            #     filtered.append(task)
+
+        return filtered
+
+    def create_task(self, task: Task):
+
+        row = task.to_list()
+        self.csv_handler.append_row(row)
 
     def update_task(self):
         pass
 
-    def delete_task(self):
-        pass
+    def delete_task(self, task_id):
 
-    def fetch_task(self):
-        pass
+        rows = self.csv_handler.read_all()
+
+        filtered = [row for row in rows if row[0] != task_id]
+
+        if len(rows) == len(filtered):
+            return False
+
+        self.csv_handler.write_all(filtered)
 
 
 if __name__ == "__main__":
 
     taskdb = TaskDB()
-    all_task = taskdb.get_all_tasks()
-    for task in all_task:
-        print(task.task_id, task.title)
+    # all_task = taskdb.get_all_tasks()
+    # for task in all_task:
+    #     print(task.task_id, task.title)
+
+    filtered_tasks = taskdb.fetch_task("TITLE", "Python")
+    for task in filtered_tasks:
+        print(task.title)

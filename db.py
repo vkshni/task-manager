@@ -69,9 +69,8 @@ class TaskDB:
 
     def initialize(self):
 
-        try:
-            self.csv_handler.read_all()
-        except:
+        rows = self.csv_handler.read_all()
+        if not rows:
             row = self.__initial_data()
             self.csv_handler.append_row(row)
 
@@ -87,14 +86,24 @@ class TaskDB:
     def fetch_task(self, filter, value):
 
         tasks = self.get_all_tasks()
+
+        if not tasks:
+            raise ValueError("No tasks found")
         filtered = []
         for task in tasks:
             if filter == "TITLE" and task.title == value:
                 filtered.append(task)
-            if filter == "CREATED_ON" and str(task.created_at.date()) == value:
+            elif (
+                filter == "CREATED_ON"
+                and str(task.created_at.strftime("%d-%m-%Y")) == value
+            ):
                 filtered.append(task)
-            # if filter == "COMPLETED_ON" and str(task.completed_at.date()) == value:
-            #     filtered.append(task)
+            elif (
+                filter == "COMPLETED_ON"
+                and task.completed_at
+                and str(task.completed_at.strftime("%d-%m-%Y")) == value
+            ):
+                filtered.append(task)
 
         return filtered
 
@@ -103,8 +112,25 @@ class TaskDB:
         row = task.to_list()
         self.csv_handler.append_row(row)
 
-    def update_task(self):
-        pass
+    def update_task(self, task: Task):
+
+        rows = self.csv_handler.read_all()
+        header = rows[0]
+        new_tasks = rows[1:]
+
+        updated = False
+
+        for i, t in enumerate(new_tasks):
+            if t[0] == task.task_id:
+                new_tasks[i] = task.to_list()
+                updated = True
+                break
+
+        if not updated:
+            raise ValueError("Task Not found")
+
+        self.csv_handler.write_all([header] + new_tasks)
+        return True
 
     def delete_task(self, task_id):
 
@@ -125,6 +151,6 @@ if __name__ == "__main__":
     # for task in all_task:
     #     print(task.task_id, task.title)
 
-    filtered_tasks = taskdb.fetch_task("TITLE", "Python")
+    filtered_tasks = taskdb.fetch_task("CREATED_ON", "25-02-2026")
     for task in filtered_tasks:
-        print(task.title)
+        print(task.to_list())

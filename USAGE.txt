@@ -1,0 +1,181 @@
+========================================
+ taski — USAGE & COMMAND REFERENCE
+========================================
+
+INSTALLATION
+------------
+From the project root:
+
+    pip install -e .
+
+
+COMMANDS
+--------
+
+  taski add <title> [--note <text>]
+  taski list
+  taski advance <id> <state>
+  taski update <id> [--title <text>] [--note <text>]
+  taski delete <id>
+  taski filter <by> <value>
+  taski help
+
+
+----------------------------------------
+ ADD
+----------------------------------------
+Create a new task. State defaults to TODO.
+
+  taski add "Learn Python"
+  taski add "Build CLI" --note "Use argparse"
+  taski add "Read docs" --note "Focus on stdlib"
+
+Notes:
+  - Title is required
+  - Title cannot be empty or blank
+  - Note is optional
+
+
+----------------------------------------
+ LIST
+----------------------------------------
+Display all tasks with their display number, title, state, created date, and note.
+
+  taski list
+
+Output columns:
+  #   TITLE   STATE   CREATED   NOTE
+
+Notes:
+  - The # column is the display ID used for all other commands
+  - Display IDs are positional — they shift after a delete
+
+
+----------------------------------------
+ ADVANCE
+----------------------------------------
+Move a task to the next state.
+
+  taski advance 1 in_progress
+  taski advance 1 done
+  taski advance 2 cancelled
+
+Valid target states:
+  in_progress   (from TODO only)
+  done          (from IN_PROGRESS only)
+  cancelled     (from TODO or IN_PROGRESS)
+
+Rules:
+  - Cannot skip states (TODO → DONE is not allowed)
+  - Cannot reverse transitions
+  - Cannot advance a DONE or CANCELLED task
+
+
+----------------------------------------
+ UPDATE
+----------------------------------------
+Edit the title or note of an existing task.
+
+  taski update 1 --title "New Title"
+  taski update 1 --note "Updated note"
+  taski update 1 --title "New Title" --note "Updated note"
+
+Rules:
+  - At least one of --title or --note must be provided
+  - Cannot update a DONE task
+  - State cannot be changed via update — use advance instead
+
+
+----------------------------------------
+ DELETE
+----------------------------------------
+Permanently remove a task.
+
+  taski delete 1
+  taski delete 3
+
+Notes:
+  - Deletion is permanent — there is no undo
+  - Display IDs of remaining tasks shift after deletion
+  - Run 'taski list' after deleting to confirm updated IDs
+
+
+----------------------------------------
+ FILTER
+----------------------------------------
+Search for tasks by a specific field.
+
+  taski filter title "Learn Python"
+  taski filter created_on "26-02-2026"
+  taski filter completed_on "27-02-2026"
+
+Filter options:
+  title          Exact title match (case-sensitive)
+  created_on     Date in DD-MM-YYYY format
+  completed_on   Date in DD-MM-YYYY format (DONE tasks only)
+
+Notes:
+  - Title filter is case-sensitive and exact
+  - Date format must be DD-MM-YYYY
+
+
+----------------------------------------
+ HELP
+----------------------------------------
+Show command summary and examples.
+
+  taski help
+
+
+----------------------------------------
+ ERROR REFERENCE
+----------------------------------------
+
+  "Task not found"
+    → The display ID does not exist. Run 'taski list' to check valid IDs.
+
+  "Invalid Transition, from X to Y"
+    → The requested state change is not allowed from the current state.
+      Check the valid flow: TODO → IN_PROGRESS → DONE
+
+  "Cannot modify 'DONE' task"
+    → DONE is a terminal state. No changes are permitted.
+
+  "Title cannot be empty or blank"
+    → Provide a non-empty title when adding or updating a task.
+
+  "Invalid filter"
+    → Use one of: title, created_on, completed_on
+
+
+----------------------------------------
+ FULL WORKFLOW EXAMPLE
+----------------------------------------
+
+  # Create tasks
+  taski add "Design database schema" --note "CSV for now"
+  taski add "Write engine layer"
+  taski add "Build CLI"
+
+  # View tasks
+  taski list
+
+  # Start working
+  taski advance 1 in_progress
+
+  # Complete it
+  taski advance 1 done
+
+  # Edit a pending task
+  taski update 2 --note "Focus on state machine first"
+
+  # Cancel a task
+  taski advance 3 cancelled
+
+  # Check completed tasks
+  taski filter completed_on "26-02-2026"
+
+  # Clean up
+  taski delete 2
+
+========================================
